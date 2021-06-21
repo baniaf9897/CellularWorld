@@ -60,12 +60,11 @@ float  BlendDst(float a, float b, float k)
 }
 
 float DistanceSphere(float3 p) {
-    float4 s = float4(0, 1, 6, 1);
+    float4 s = float4(2, 2, 0, 2);
 
     float sphereDist = length(p - s.xyz) - s.w;
-    float planeDist = p.y;
 
-    return min(sphereDist, planeDist);
+    return sphereDist;
 }
 
 float DistanceCell(float3 eye, float3 centre, float3 size) {
@@ -81,7 +80,7 @@ float GetDistance(float3 p) {
     //use min or some interpolation to union these cells into one shape
 
 
-    return min(DistanceCell(p,float3(0.2,0.2,0.2),float3(2.0,2.0,1.0)), DistanceCell(p, float3(4.5, 0.2, 0.2), float3(2.0, 2.0, 1.0)));
+    return min(DistanceSphere(p), min(DistanceCell(p,float3(0.2,0.2,0.2),float3(2.0,2.0,1.0)), DistanceCell(p, float3(4.5, 0.2, 0.2), float3(2.0, 2.0, 1.0))));
 }
 
 
