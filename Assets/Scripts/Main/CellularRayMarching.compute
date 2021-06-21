@@ -13,6 +13,7 @@ Texture2D<float4> Source;
 RWTexture2D<float4> Destination;
 
 
+
 float4x4 _CameraToWorld;
 float4x4 _CameraInverseProjection;
 
@@ -23,6 +24,15 @@ struct Ray {
     float3 origin;
     float3 direction;
 };
+
+struct Cell {
+    float3 pos;
+    float3 size;
+    float3 color;
+};
+
+StructuredBuffer<Cell> cells;
+int                     numCells;
 
 Ray CreateRay(float3 origin, float3 direction) {
     Ray ray;
@@ -75,26 +85,75 @@ float DistanceCell(float3 eye, float3 centre, float3 size) {
 }
 
 
-float GetDistance(float3 p) {
-    //iterate over all available cells....
-    //use min or some interpolation to union these cells into one shape
 
 
-    return min(DistanceSphere(p), min(DistanceCell(p, float3(0.2, 0.2, 0.2), float3(2.0, 2.0, 1.0)), DistanceCell(p, float3(4.5, 0.2, 0.2), float3(2.0, 2.0, 1.0))));
+
+float4 Combine(float dstA, float dstB, float3 colourA, float3 colourB, int operation, float blendStrength) {
+    float dst = dstA;
+    float3 colour = colourA;
+
+
+    if (operation == 0) {
+        if (dstB < dstA) {
+            dst = dstB;
+            colour = colourB;
+        }
+    }
+    // Blend
+    else if (operation == 1) {
+        float4 blend = Blend(dstA, dstB, colourA, colourB, blendStrength);
+        dst = blend.w;
+        colour = blend.xyz;
+    }
+    // Cut
+    else if (operation == 2) {
+        // max(a,-b)
+        if (-dstB > dst) {
+            dst = -dstB;
+            colour = colourB;
+        }
+    }
+    // Mask
+    else if (operation == 3) {
+        // max(a,b)
+        if (dstB > dst) {
+            dst = dstB;
+            colour = colourB;
+        }
+    }
+
+    return float4(colour, dst);
+}
+
+float4 RayMarching(float3 p) {
+
+    float3 color = 1;
+    float dist = MAX_DIST;
+
+    for (int i = 0; i < numCells; i++) {
+        Cell cell = cells[i];
+
+       
+        float localD = DistanceCell(p, cell.pos,cell.size);
+        float3 localColor = cell.color;
+
+        float4 globalCombined = Combine(dist , localD, color, localColor, 1, 0.9);
+        color = globalCombined.xyz;
+        dist = globalCombined.w;
+        
+   
+    }
+    
+
+    return float4(color, dist);
 }
 
 
-
 float3 GetNormal(float3 p) {
-    float d = GetDistance(p);
-    float2 e = float2(.01, 0);
-
-    float3 n = d - float3(
-        GetDistance(p - e.xyy),
-        GetDistance(p - e.yxy),
-        GetDistance(p - e.yyx));
-
-    return normalize(n);
+    float x = RayMarching(float3(p.x + SURF_DIST, p.y, p.z)).w - RayMarching(float3(p.x - SURF_DIST, p.y, p.z)).w;
+    float y = RayMarching(float3(p.x, p.y + SURF_DIST, p.z)).w - RayMarching(float3(p.x, p.y - SURF_DIST, p.z)).w;
+    float z = RayMarching(float3(p.x, p.y, p.z + SURF_DIST)).w - RayMarching(float3(p.x, p.y, p.z - SURF_DIST)).w;
+    return normalize(float3(x, y, z));
 }
 
 float CalculateShadow(Ray ray, float dstToShadePoint) {
@@ -105,7 +164,7 @@ float CalculateShadow(Ray ray, float dstToShadePoint) {
 
     while (rayDst < dstToShadePoint) {
         marchSteps++;
-        float dst = GetDistance(ray.origin);
+        float dst = RayMarching(ray.origin).w;
 
         if (dst <= SURF_DIST) {
             return shadowIntensity;
@@ -117,17 +176,6 @@ float CalculateShadow(Ray ray, float dstToShadePoint) {
         rayDst += dst;
     }
     return shadowIntensity + (1 - shadowIntensity) * brightness;
-}
-
-
-float4 RayMarching(float3 p) {
-
-    float3 color = 1;
-    float d = MAX_DIST;
-
-    d = GetDistance(p);
-
-    return float4(color, d);
 }
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)

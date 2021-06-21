@@ -17,7 +17,6 @@ public class SimulationManager : MonoBehaviour
     Light light;
     RenderTexture target;
 
-    List<List<Cell>> m_cells;
 
     // Start is called before the first frame update
     void InitScene()
@@ -49,18 +48,12 @@ public class SimulationManager : MonoBehaviour
         }
     }
 
-    void InitCells()
-    {
-
-    }
-
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         InitScene();
         //buffersToDispose = new List<ComputeBuffer>();
 
         InitRenderTexture();
-        InitCells();
         InitParameters();
 
         m_RaymarchingShader.SetTexture(0, "Source", source);
@@ -81,9 +74,7 @@ public class SimulationManager : MonoBehaviour
 
     void Start()
     {
-        m_cells = new List<List<Cell>>();
 
-        GenerateRandomCellDistribution();
     }
 
    
@@ -95,17 +86,7 @@ public class SimulationManager : MonoBehaviour
         
     }
 
-    void GenerateRandomCellDistribution()
-    {
-        List<Cell> firstGen = new List<Cell>();
-
-        for(int i = 0; i < m_NumCells; i++)
-        {
-            firstGen.Add(new Cell(new Vector3(1.0f,1.0f,1.0f),new Color(0,0,0)));
-        };
-
-        m_cells.Add(firstGen);
-    }
+   
 
     Vector3 getDistinctAndRandomPos()
     {
