@@ -53,18 +53,6 @@ public class WorldManager : MonoBehaviour
             m_CellularAutomatumManager = transform.GetComponent<CellularAutomatum>();
         }
 
-        /*m_RenderingCells = new List<Cell>();
-
-        Cell cell1 = new Cell(new Vector3(0,0,0), new Vector3(1, 1, 1), new Vector3(1.0f,0.0f,0.0f));
-        Cell cell2 = new Cell(new Vector3(1.0f, 2.0f, 0.0f),new Vector3(1.0f, .5f, 1.0f), new Vector3(0.0f, 1.0f, 0.0f));
-        Cell cell3 = new Cell(new Vector3(3.0f, 1.0f, 2.0f), new Vector3(1, 1, 2), new Vector3(.5f, .5f, 0.0f));
-        Cell cell4 = new Cell(new Vector3(1.0f, 2.0f, 3.0f), new Vector3(1.4f, 1.3f, 1.0f), new Vector3(.0f, .5f, .5f));
-
-        m_RenderingCells.Add(cell1);
-        m_RenderingCells.Add(cell2);
-        m_RenderingCells.Add(cell3);
-        m_RenderingCells.Add(cell4);*/
-
         m_CellularAutomatumManager.Generate();
         m_RenderingCells = m_CellularAutomatumManager.GetRenderingCells();
 

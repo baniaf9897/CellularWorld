@@ -17,6 +17,7 @@ public class CellularAutomatum : MonoBehaviour
     {
         if(m_generation > Cells.Count)
         {
+            Debug.Log("New Generation");
             AddNewGeneration();
         }
     }
@@ -29,7 +30,7 @@ public class CellularAutomatum : MonoBehaviour
         }
         else
         {
-
+            //Ruleset for additional generations....
         }
     }
 
@@ -42,13 +43,13 @@ public class CellularAutomatum : MonoBehaviour
             int x = Random.Range(0, width);
             int z = Random.Range(0, depth);
 
-            initialGen[x, z] = new Cell(new Vector3(x, 0, z), new Vector3(1, 1, 1), new Vector3(Random.Range(0.0f,1.0f), 0, 0));
+            initialGen[x, z] = new Cell(new Vector3(x, 0, z), new Vector3(1, 1, 1), new Vector3(1, 0, 0));
         }
 
         Cells.Add(initialGen);
 
         m_renderingCells = FilteringRenderingCells(Cells);
-        Debug.Log("Creating intial Gen");
+        Debug.Log("Creating intial Gen with NumCells : " +  m_renderingCells.Count);
 
     }
 
@@ -67,7 +68,8 @@ public class CellularAutomatum : MonoBehaviour
             {
                 for(int y = 0; y < depth; y++)
                 {
-                    c.Add(cells[i][x,y]);
+                    if(cells[i][x,y].color.x == 1)
+                        c.Add(cells[i][x,y]);
                 }
             }
         }
