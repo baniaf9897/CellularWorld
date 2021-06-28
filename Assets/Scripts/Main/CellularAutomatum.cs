@@ -16,11 +16,12 @@ public class CellularAutomatum : MonoBehaviour
 
     public int initialNumCells = 10;
 
-    int m_generation = 1;
+    public int m_generation = 0;
+    public bool initialized = false;
 
     private void OnValidate()
     {
-        InitTexture();
+        initialized = false;
     }
     public void InitTexture()
     {
@@ -29,6 +30,8 @@ public class CellularAutomatum : MonoBehaviour
         automatum.depth = 0;
         automatum.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
         automatum.Create();
+
+        initialized = true;
     }
 
     public void Generate()

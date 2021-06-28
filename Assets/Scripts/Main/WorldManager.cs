@@ -63,27 +63,37 @@ public class WorldManager : MonoBehaviour
         RaymarchingShader.SetInt("numCells", m_RenderingCells.Count);*/
 
         //if texture == null => create tex
-        if(m_CellularAutomatumManager.automatum == null)
+        if(!m_CellularAutomatumManager.initialized)
         {
             m_CellularAutomatumManager.InitTexture();
+            
+            CA.SetTexture(0, "Automatum", m_CellularAutomatumManager.automatum);
+            CA.SetInt("width", m_CellularAutomatumManager.width);
+            CA.SetInt("depth", m_CellularAutomatumManager.depth);
+            CA.SetInt("height", m_CellularAutomatumManager.height);
+            CA.SetInt("currentLayer", m_CellularAutomatumManager.m_generation);
+
+            RaymarchingShader.SetTexture(0, "automatum", m_CellularAutomatumManager.automatum);
+            RaymarchingShader.SetInt("width", m_CellularAutomatumManager.width);
+            RaymarchingShader.SetInt("depth", m_CellularAutomatumManager.depth);
+            RaymarchingShader.SetInt("height", m_CellularAutomatumManager.height);
+
+            Debug.Log("Call CA");
+            ComputeCA();
         };
 
-        CA.SetTexture(0, "Automatum", m_CellularAutomatumManager.automatum);
+
+       /* CA.SetTexture(0, "Automatum", m_CellularAutomatumManager.automatum);
         CA.SetInt("width", m_CellularAutomatumManager.width);
         CA.SetInt("depth", m_CellularAutomatumManager.depth);
         CA.SetInt("height", m_CellularAutomatumManager.height);
+        CA.SetInt("currentLayer", m_CellularAutomatumManager.m_generation);
 
         RaymarchingShader.SetTexture(0, "automatum", m_CellularAutomatumManager.automatum);
         RaymarchingShader.SetInt("width", m_CellularAutomatumManager.width);
         RaymarchingShader.SetInt("depth", m_CellularAutomatumManager.depth);
         RaymarchingShader.SetInt("height", m_CellularAutomatumManager.height);
-
-
-        //set texture for Raymarching as well
-        ComputeCA();
-
-       
-
+       */
     }
 
     void ComputeCA()

@@ -1,7 +1,7 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-#define MAX_STEPS 200
+#define MAX_STEPS 100
 #define MAX_DIST 100.0
 #define SURF_DIST 0.001
 
@@ -72,10 +72,12 @@ float DistanceExampleSphere(float3 p) {
 
 //Cell = Box
 float DistanceCell(float3 eye, float3 centre, float3 size) {
-    float3 o = abs(eye - centre) - size;
-    float ud = length(max(o, 0));
-    float n = max(max(min(o.x, 0), min(o.y, 0)), min(o.z, 0));
-    return ud + n;
+    //float3 o = abs(eye - centre) - size;
+   // float ud = length(max(o, 0));
+   // float n = max(max(min(o.x, 0), min(o.y, 0)), min(o.z, 0));
+    
+   // return ud + n;
+    return length(eye - centre) - size;
 }
 
 
@@ -111,16 +113,13 @@ float4 RayMarching(float3 p) {
     for (int w = 0; w < width; w++) {
         for (int d = 0; d < depth; d++) {
             for (int h = 0; h < height; h++) {
-                if(automatum[float3(w,h,d)].w > 0.0){
                     float localD =  DistanceCell(p, float3(w, h, d), float3(0.5, 0.5, 0.5));
                     float3 localColor = automatum[float3(w, h, d)].xyz;
               
                     float4 globalCombined = Combine(dist, localD, color, localColor, 0.9);
 
                     color = globalCombined.xyz;
-                    dist = globalCombined.w;
-                }
-            
+                    dist = globalCombined.w;            
             }
         }
     }
