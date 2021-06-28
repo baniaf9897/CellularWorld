@@ -29,8 +29,13 @@ struct Cell {
     float3 color;
 };
 
-StructuredBuffer<Cell> cells;
+StructuredBuffer<Cell>  cells;
 int                     numCells;
+
+RWTexture3D <float4>    automatum;
+int                     width;
+int                     height;
+int                     depth;
 
 Ray CreateRay(float3 origin, float3 direction) {
     Ray ray;
@@ -89,7 +94,7 @@ float4 RayMarching(float3 p) {
     float dist = MAX_DIST;
 
     //iterate over all cells and calc color as well as distance for each point p
-    for (int i = 0; i < numCells; i++) {
+    /*for (int i = 0; i < numCells; i++) {
         Cell cell = cells[i];
        
         float localD = DistanceCell(p, cell.pos,cell.size);
@@ -100,7 +105,26 @@ float4 RayMarching(float3 p) {
         color = globalCombined.xyz;
         dist  = globalCombined.w;
      
+    }*/
+
+
+    for (int w = 0; w < width; w++) {
+        for (int d = 0; d < depth; d++) {
+            for (int h = 0; h < height; h++) {
+                if(automatum[float3(w,h,d)].w > 0.0){
+                    float localD =  DistanceCell(p, float3(w, h, d), float3(0.5, 0.5, 0.5));
+                    float3 localColor = automatum[float3(w, h, d)].xyz;
+              
+                    float4 globalCombined = Combine(dist, localD, color, localColor, 0.9);
+
+                    color = globalCombined.xyz;
+                    dist = globalCombined.w;
+                }
+            
+            }
+        }
     }
+
     return float4(color, dist);
 }
 

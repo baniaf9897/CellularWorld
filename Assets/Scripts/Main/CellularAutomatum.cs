@@ -5,13 +5,31 @@ using UnityEngine;
 public class CellularAutomatum : MonoBehaviour
 {
     public List<Cell[,]> Cells = new List<Cell[,]>();
+
+    public RenderTexture automatum;
+
     List<Cell> m_renderingCells = new List<Cell>();
     public int width = 100;
     public int depth = 100;
 
+    public int height = 20;
+
     public int initialNumCells = 10;
 
     int m_generation = 1;
+
+    private void OnValidate()
+    {
+        InitTexture();
+    }
+    public void InitTexture()
+    {
+        automatum = new RenderTexture(width, height, depth, RenderTextureFormat.ARGB32);
+        automatum.enableRandomWrite = true;
+        automatum.depth = 0;
+        automatum.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
+        automatum.Create();
+    }
 
     public void Generate()
     {

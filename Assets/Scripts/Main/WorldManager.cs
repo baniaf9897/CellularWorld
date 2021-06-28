@@ -6,6 +6,7 @@ public class WorldManager : MonoBehaviour
 {
 
     public ComputeShader RaymarchingShader;
+    public ComputeShader CA;
     CellularAutomatum m_CellularAutomatumManager;
 
     Camera m_Cam;
@@ -53,14 +54,46 @@ public class WorldManager : MonoBehaviour
             m_CellularAutomatumManager = transform.GetComponent<CellularAutomatum>();
         }
 
-        m_CellularAutomatumManager.Generate();
+        /*m_CellularAutomatumManager.Generate();
         m_RenderingCells = m_CellularAutomatumManager.GetRenderingCells();
 
         m_CellBuffer = new ComputeBuffer(m_RenderingCells.Count, Cell.GetSize());
         m_CellBuffer.SetData(m_RenderingCells);
         RaymarchingShader.SetBuffer(0, "cells", m_CellBuffer);
-        RaymarchingShader.SetInt("numCells", m_RenderingCells.Count);
+        RaymarchingShader.SetInt("numCells", m_RenderingCells.Count);*/
 
+        //if texture == null => create tex
+        if(m_CellularAutomatumManager.automatum == null)
+        {
+            m_CellularAutomatumManager.InitTexture();
+        };
+
+        CA.SetTexture(0, "Automatum", m_CellularAutomatumManager.automatum);
+        CA.SetInt("width", m_CellularAutomatumManager.width);
+        CA.SetInt("depth", m_CellularAutomatumManager.depth);
+        CA.SetInt("height", m_CellularAutomatumManager.height);
+
+        RaymarchingShader.SetTexture(0, "automatum", m_CellularAutomatumManager.automatum);
+        RaymarchingShader.SetInt("width", m_CellularAutomatumManager.width);
+        RaymarchingShader.SetInt("depth", m_CellularAutomatumManager.depth);
+        RaymarchingShader.SetInt("height", m_CellularAutomatumManager.height);
+
+
+        //set texture for Raymarching as well
+        ComputeCA();
+
+       
+
+    }
+
+    void ComputeCA()
+    {
+        int threadGroupsX = Mathf.CeilToInt(m_CellularAutomatumManager.width / 8.0f);
+        int threadGroupsY = Mathf.CeilToInt(m_CellularAutomatumManager.height / 8.0f);
+        int threadGroupsZ = Mathf.CeilToInt(m_CellularAutomatumManager.depth / 8.0f);
+        
+        
+        CA.Dispatch(0, threadGroupsX, threadGroupsY, threadGroupsZ);
     }
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
@@ -80,6 +113,6 @@ public class WorldManager : MonoBehaviour
 
         Graphics.Blit(m_Target, destination);
 
-        m_CellBuffer.Dispose();
+        //m_CellBuffer.Dispose();
     }
 }
