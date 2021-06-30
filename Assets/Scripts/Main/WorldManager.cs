@@ -80,6 +80,7 @@ public class WorldManager : MonoBehaviour
 
             Debug.Log("Call CA");
             ComputeCA();
+
         };
 
 

@@ -3,7 +3,7 @@
 
 #define MAX_STEPS 100
 #define MAX_DIST 100.0
-#define SURF_DIST 0.001
+#define SURF_DIST 0.01
 
 static const float shadowBias = SURF_DIST * 10;
 
@@ -70,6 +70,9 @@ float DistanceExampleSphere(float3 p) {
     return sphereDist;
 }
 
+float3 opRepLim(float3 eye, float s, float3 lima) {
+    return eye - s * clamp(floor(eye / s), -lima, lima);
+}
 //Cell = Box
 float DistanceCell(float3 eye, float3 centre, float3 size) {
     //float3 o = abs(eye - centre) - size;
@@ -77,8 +80,12 @@ float DistanceCell(float3 eye, float3 centre, float3 size) {
    // float n = max(max(min(o.x, 0), min(o.y, 0)), min(o.z, 0));
     
    // return ud + n;
+    //eye = opRepLim(eye, 0.6, float3(5, 5, 5));
     return length(eye - centre) - size;
+   // eye = fmod(eye + 1., 2.) - 1.;
+    //return length(eye - centre) - size;
 }
+
 
 
 float4 Combine(float dstA, float dstB, float3 colorA, float3 colorB, float blendStrength) {
@@ -96,7 +103,7 @@ float4 RayMarching(float3 p) {
     float dist = MAX_DIST;
 
     //iterate over all cells and calc color as well as distance for each point p
-    /*for (int i = 0; i < numCells; i++) {
+   /* for (int i = 0; i < numCells; i++) {
         Cell cell = cells[i];
        
         float localD = DistanceCell(p, cell.pos,cell.size);
@@ -109,11 +116,19 @@ float4 RayMarching(float3 p) {
      
     }*/
 
+   /* float localD = DistanceCell(p, float3(1, 1, 1), float3(1, 1, 1));
+    float3 localColor = automatum[float3(0, 0, 0)].xyz;
+
+    float4 globalCombined = Combine(dist, localD, color, localColor, 0.9);
+
+    color = globalCombined.xyz;
+    dist = globalCombined.w;*/
+
 
     for (int w = 0; w < width; w++) {
         for (int d = 0; d < depth; d++) {
             for (int h = 0; h < height; h++) {
-                    float localD =  DistanceCell(p, float3(w, h, d), float3(0.5, 0.5, 0.5));
+                    float localD =  DistanceCell(p, float3(w, h, d), float3(0.1, 0.1, 0.1));
                     float3 localColor = automatum[float3(w, h, d)].xyz;
               
                     float4 globalCombined = Combine(dist, localD, color, localColor, 0.9);
@@ -141,7 +156,7 @@ float CalculateShadow(Ray ray, float dstToShadePoint) {
     float shadowIntensity = .2;
     float brightness = 1;
 
-    while (rayDst < dstToShadePoint) {
+    while (rayDst < dstToShadePoint && marchSteps < MAX_STEPS) {
         marchSteps++;
         float dst = RayMarching(ray.origin).w;
 
@@ -171,7 +186,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     Ray ray = CreateCameraRay(uv);
     int marchSteps = 0;
 
-    while (rayDst < MAX_DIST) {
+    while (rayDst < MAX_DIST && marchSteps < MAX_STEPS) {
         marchSteps++;
         float4 sceneInfo = RayMarching(ray.origin);
         float dst = sceneInfo.w;
@@ -180,20 +195,23 @@ void CSMain(uint3 id : SV_DispatchThreadID)
             float3 pointOnSurface = ray.origin + ray.direction * dst;
             float3 normal = GetNormal(pointOnSurface - ray.direction * SURF_DIST);
             float3 lightDir = (positionLight) ? normalize(_Light - ray.origin) : -_Light;
-            float lighting = saturate(saturate(dot(normal, lightDir)));
+            float lighting =   saturate(saturate(dot(normal, lightDir)));
             float3 color = sceneInfo.xyz;
 
             // Shadow
             float3 offsetPos = pointOnSurface + normal * shadowBias;
-            float3 dirToLight = (positionLight) ? normalize(_Light - offsetPos) : -_Light;
+            //float3 dirToLight = (positionLight) ? normalize(_Light - offsetPos) : -_Light;
+            float3 direction_to_light = normalize(offsetPos - positionLight);
 
-            ray.origin = offsetPos;
-            ray.direction = dirToLight;
+            //ray.origin = offsetPos;
+            //ray.direction = direction_to_light;
 
-            float dstToLight = (positionLight) ? distance(offsetPos, _Light) : MAX_DIST;
-            float shadow = CalculateShadow(ray, dstToLight);
+            float diffuse_intensity =   max(0.0, dot(normal, direction_to_light));
 
-            Destination[id.xy] = float4(color * lighting * shadow, 1);
+           // float dstToLight = (positionLight) ? distance(offsetPos, _Light) : MAX_DIST;
+            //float shadow =  CalculateShadow(ray, dstToLight);
+
+            Destination[id.xy] = float4(color.x * lighting * diffuse_intensity,0,0, 1);
 
             break;
         }
