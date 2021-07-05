@@ -45,8 +45,8 @@ Shader "Unlit/PlaneMarching"
             v2f vert (appdata v)
             {
                 v2f o;
-                o.pos = UnityObjectToClipPos(v.vertex);
                 o.wPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+                o.pos = UnityObjectToClipPos(v.vertex);
 
                 return o;
             }
@@ -60,7 +60,7 @@ Shader "Unlit/PlaneMarching"
                     float3 p = p0 + d * t;
                     float4 c = tex3D(_CellularTex, p / _CellularTex_TexelSize.z);
                     
-                    if (c.a > 0.9) {
+                    if (c.a > 0.4) {
                         return c;
                     }
 

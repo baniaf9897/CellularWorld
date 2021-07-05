@@ -45,21 +45,22 @@ public class WorldMgr : MonoBehaviour
         Color[] colors = new Color[size * size * size];
 
         // Populate the array so that the x, y, and z values of the texture will map to red, blue, and green colors
-        float inverseResolution = 1.0f / (size - 1.0f);
-        for (int z = 0; z < size; z++)
+        for (int x = 0; x < size; x++)
         {
-            int zOffset = z * size * size;
             for (int y = 0; y < size; y++)
             {
-                int yOffset = y * size;
-                for (int x = 0; x < size; x++)
+                for (int z = 0; z < size; z++)
                 {
-                    colors[x + yOffset + zOffset] = new Color(x * inverseResolution,
-                            y * inverseResolution, z * inverseResolution, 1.0f);
-
+                    //float value = Get3DNoise(x, y * size, z * size * size, .001f);
+                    Color c = new Color(1.0f, 1.0f, 0.5f, 0.0f);
+                    colors[x + (y * size) + (z * size * size)] = c;
                 }
             }
         }
+
+        colors[300].a = 1.0f;
+        colors[1324].a = 1.0f;
+
 
         // Copy the color values to the texture
         texture.SetPixels(colors);
@@ -69,5 +70,19 @@ public class WorldMgr : MonoBehaviour
 
         // Save the texture to your Unity Project
         AssetDatabase.CreateAsset(texture, "Assets/3DTexture.asset");
+    }
+
+    float Get3DNoise(float x, float y, float z, float frequency)
+    {
+        float noiseXY = Mathf.PerlinNoise(x * frequency, y * frequency);
+        float noiseXZ = Mathf.PerlinNoise(x * frequency, z * frequency);
+        float noiseYZ = Mathf.PerlinNoise(y * frequency, z * frequency);
+
+        // Reverse of the permutations of noise for each individual axis
+        float noiseYX = Mathf.PerlinNoise(y * frequency, x * frequency);
+        float noiseZX = Mathf.PerlinNoise(z * frequency, x * frequency);
+        float noiseZY = Mathf.PerlinNoise(z * frequency, y * frequency);
+
+        return (noiseXY + noiseXZ + noiseYZ + noiseYX + noiseZX + noiseZY) / 6.0f;
     }
 }
