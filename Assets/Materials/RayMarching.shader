@@ -2,7 +2,7 @@ Shader "Unlit/RayMarching"
 {
     Properties
     {
-        _MainTex("Texture", 3D) = "white" {}
+        _CellularTex("Texture", 3D) = "" {}
         _Alpha("Alpha", float) = 0.02
         _StepSize("Step Size", float) = 0.01
     }
@@ -11,6 +11,7 @@ Shader "Unlit/RayMarching"
             Tags { "Queue" = "Transparent" "RenderType" = "Transparent" }
             Blend One OneMinusSrcAlpha
             LOD 100
+            Cull Off
 
             Pass
             {
@@ -38,8 +39,8 @@ Shader "Unlit/RayMarching"
                     float3 vectorToSurface : TEXCOORD1;
                 };
 
-                sampler3D _MainTex;
-                float4 _MainTex_ST;
+                sampler3D _CellularTex;
+                float4 _CellularTex_ST;
                 float _Alpha;
                 float _StepSize;
 
@@ -80,11 +81,13 @@ Shader "Unlit/RayMarching"
                     for (int i = 0; i < MAX_STEP_COUNT; i++)
                     {
                         // Accumulate color only within unit cube bounds
-                        if (max(abs(samplePosition.x), max(abs(samplePosition.y), abs(samplePosition.z))) < 0.5f + EPSILON)
+                        if (max(abs(samplePosition.x), max(abs(samplePosition.y), abs(samplePosition.z))) < 0.5f + EPSILON )
                         {
-                            float4 sampledColor = tex3D(_MainTex, samplePosition + float3(0.5f, 0.5f, 0.5f));
-                            sampledColor.a *= _Alpha;
-                            color = BlendUnder(color, sampledColor);
+                            float4 sampledColor = tex3D(_CellularTex, samplePosition + float3(0.5f, 0.5f, 0.5f));
+                            if(sampledColor.a > 0.1){
+                                sampledColor.a *= _Alpha;
+                                color = BlendUnder(color, sampledColor);
+                            }
                             samplePosition += rayDirection * _StepSize;
                         }
                     }

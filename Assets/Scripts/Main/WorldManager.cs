@@ -65,7 +65,7 @@ public class WorldManager : MonoBehaviour
         //if texture == null => create tex
         if(!m_CellularAutomatumManager.initialized)
         {
-            m_CellularAutomatumManager.InitTexture();
+           // m_CellularAutomatumManager.InitTexture();
             
             CA.SetTexture(0, "Automatum", m_CellularAutomatumManager.automatum);
             CA.SetInt("width", m_CellularAutomatumManager.width);
@@ -102,8 +102,8 @@ public class WorldManager : MonoBehaviour
         int threadGroupsX = Mathf.CeilToInt(m_CellularAutomatumManager.width / 8.0f);
         int threadGroupsY = Mathf.CeilToInt(m_CellularAutomatumManager.height / 8.0f);
         int threadGroupsZ = Mathf.CeilToInt(m_CellularAutomatumManager.depth / 8.0f);
-        
-        
+
+
         CA.Dispatch(0, threadGroupsX, threadGroupsY, threadGroupsZ);
     }
 
